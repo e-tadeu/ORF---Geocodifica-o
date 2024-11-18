@@ -30,96 +30,113 @@ __copyright__ = '(C) 2024 by Cap Tadeu; 1° Ten Kreitlon'
 
 __revision__ = '$Format:%H$'
 
-from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (QgsProcessing,
-                       QgsFeatureSink,
                        QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink)
+                       QgsProcessingParameterFeatureSink,
+                       QgsProcessingParameterField,
+                       QgsProcessingParameterFile,
+                       QgsProcessingOutputVectorLayer,
+                       QgsVectorLayer,
+                       QgsFields,
+                       QgsField,
+                       QgsGeometry,
+                       QgsPointXY,
+                       QgsProject,
+                       QgsFeature,
+                       QgsWkbTypes,
+                       QgsCoordinateReferenceSystem)
+import csv
+import geocoder
+import pandas as pd
+from qgis.PyQt.QtCore import QVariant, QCoreApplication
 
+import certifi
+import os
+os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
 
 class GeocodificacaoAlgorithm(QgsProcessingAlgorithm):
-    """
-    This is an example algorithm that takes a vector layer and
-    creates a new identical one.
-
-    It is meant to be used as an example of how to create your own
-    algorithms and explain methods and variables used to do it. An
-    algorithm like this will be available in all elements, and there
-    is not need for additional work.
-
-    All Processing algorithms should extend the QgsProcessingAlgorithm
-    class.
-    """
-
-    # Constants used to refer to parameters and outputs. They will be
-    # used when calling the algorithm from another algorithm, or when
-    # calling from the QGIS console.
-
-    OUTPUT = 'OUTPUT'
-    INPUT = 'INPUT'
-
-    def initAlgorithm(self, config):
-        """
-        Here we define the inputs and output of the algorithm, along
-        with some other properties.
-        """
-
-        # We add the input vector features source. It can have any kind of
-        # geometry.
+    INPUT_CSV = 'INPUT_CSV'
+    ADDRESS_FIELD = 'ADDRESS_FIELD'
+    OUTPUT_LAYER = 'OUTPUT_LAYER'
+    
+    def initAlgorithm(self, config=None):
+        # Parâmetro para o arquivo CSV
         self.addParameter(
-            QgsProcessingParameterFeatureSource(
-                self.INPUT,
-                self.tr('Input layer'),
-                [QgsProcessing.TypeVectorAnyGeometry]
+            QgsProcessingParameterFile(
+                self.INPUT_CSV,
+                'Arquivo CSV com endereços',
+                extension='csv'
             )
         )
-
-        # We add a feature sink in which to store our processed features (this
-        # usually takes the form of a newly created vector layer when the
-        # algorithm is run in QGIS).
+        # Parâmetro para a coluna que contém os endereços
+        self.addParameter(
+            QgsProcessingParameterField(
+                self.ADDRESS_FIELD,
+                'Coluna de endereços',
+                parentLayerParameterName=self.INPUT_CSV,
+                type=QgsProcessingParameterField.String
+            )
+        )
+        # Saída como camada vetorial
         self.addParameter(
             QgsProcessingParameterFeatureSink(
-                self.OUTPUT,
-                self.tr('Output layer')
+                self.OUTPUT_LAYER,
+                self.tr('Geocoded Points')
             )
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        """
-        Here is where the processing itself takes place.
-        """
+        # Obter o arquivo CSV de entrada
+        input_csv = self.parameterAsFile(parameters, self.INPUT_CSV, context)
+        address_field = self.parameterAsString(parameters, self.ADDRESS_FIELD, context)
+        
+        # Criar uma nova camada de saída de pontos
+        crs = QgsCoordinateReferenceSystem("EPSG:4326")  # WGS 84
+        output_layer = QgsVectorLayer(f"Point?crs={crs.authid()}", "Geocoded Points", "memory")
+        output_layer_pr = output_layer.dataProvider()
 
-        # Retrieve the feature source and sink. The 'dest_id' variable is used
-        # to uniquely identify the feature sink, and must be included in the
-        # dictionary returned by the processAlgorithm function.
-        source = self.parameterAsSource(parameters, self.INPUT, context)
-        (sink, dest_id) = self.parameterAsSink(parameters, self.OUTPUT,
-                context, source.fields(), source.wkbType(), source.sourceCrs())
+        # Definir campos para a camada de saída
+        fields = QgsFields()
+        fields.append(QgsField("address", QVariant.String))
+        fields.append(QgsField("latitude", QVariant.Double))
+        fields.append(QgsField("longitude", QVariant.Double))
+        output_layer_pr.addAttributes(fields)
+        output_layer.updateFields()
 
-        # Compute the number of steps to display within the progress bar and
-        # get features from source
-        total = 100.0 / source.featureCount() if source.featureCount() else 0
-        features = source.getFeatures()
+        # Ler o arquivo CSV com pandas
+        feedback.pushInfo("Carregando o arquivo CSV...")
+        data = pd.read_csv(input_csv)
+        feedback.pushInfo(f"A variável data é do tipo {type(data)}.") #O data é do tipo dataframe
 
-        for current, feature in enumerate(features):
-            # Stop the algorithm if cancel button has been clicked
-            if feedback.isCanceled():
-                break
+        # Verificar se a coluna selecionada existe
+        #if address_field not in data.columns:
+        #    raise QgsProcessingException(f"A coluna '{address_field}' não foi encontrada no arquivo CSV.")
 
-            # Add a feature in the sink
-            sink.addFeature(feature, QgsFeatureSink.FastInsert)
+        # Processar cada endereço na coluna selecionada
+        for index, row in data.iterrows():
+            address = row[address_field]
+            feedback.pushInfo(f"O input address é {address}.")
+            if not isinstance(address, str) or not address.strip():
+                feedback.pushInfo(f"Endereço vazio na linha {index + 1}, ignorado.")
+                continue
+            
+            # Geocodificar o endereço
+            location = geocoder.arcgis(address)
+            if location and location.latlng:
+                lat, lng = location.latlng
+                feedback.pushInfo(f"\nO lat long do Endereço {address} é {lat}, {lng}.\n")
+                # Criar uma nova feição de ponto
+                feature = QgsFeature()
+                feature.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(lng, lat)))
+                feature.setAttributes([address, lat, lng])
+                output_layer_pr.addFeature(feature)
+            else:
+                feedback.pushInfo(f"Não foi possível geocodificar o endereço: {address}")
 
-            # Update the progress bar
-            feedback.setProgress(int(current * total))
-
-        # Return the results of the algorithm. In this case our only result is
-        # the feature sink which contains the processed features, but some
-        # algorithms may return multiple feature sinks, calculated numeric
-        # statistics, etc. These should all be included in the returned
-        # dictionary, with keys matching the feature corresponding parameter
-        # or output names.
-        return {self.OUTPUT: dest_id}
+        # Atualizar a camada
+        output_layer.updateExtents()
+        QgsProject.instance().addMapLayer(output_layer)
+        return {self.OUTPUT_LAYER: output_layer}
 
     def name(self):
         """
@@ -129,7 +146,7 @@ class GeocodificacaoAlgorithm(QgsProcessingAlgorithm):
         lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'OperacaoRicardoFranco2024'
+        return 'Geocodificacao'
 
     def displayName(self):
         """

@@ -72,7 +72,7 @@ class GeocodificacaoProvider(QgsProcessingProvider):
 
         This string should be short (e.g. "Lastools") and localised.
         """
-        return self.tr('Geocodificacao')
+        return self.tr('Op Ricardo Franco 24')
 
     def icon(self):
         """
