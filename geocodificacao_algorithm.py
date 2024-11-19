@@ -30,6 +30,7 @@ __copyright__ = '(C) 2024 by Cap Tadeu; 1° Ten Kreitlon'
 
 __revision__ = '$Format:%H$'
 
+import os
 from qgis.core import (QgsProcessing,
                        QgsProcessingAlgorithm,
                        QgsProcessingParameterFeatureSink,
@@ -45,10 +46,10 @@ from qgis.core import (QgsProcessing,
                        QgsFeature,
                        QgsWkbTypes,
                        QgsCoordinateReferenceSystem)
-import csv
 import geocoder
 import pandas as pd
 from qgis.PyQt.QtCore import QVariant, QCoreApplication
+from qgis.PyQt.QtGui import QIcon
 
 import certifi
 import os
@@ -177,3 +178,6 @@ class GeocodificacaoAlgorithm(QgsProcessingAlgorithm):
 
     def createInstance(self):
         return GeocodificacaoAlgorithm()
+    
+    def icon(self):
+        return QIcon(os.path.join(os.path.dirname(__file__), 'geocod.jfif'))

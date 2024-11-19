@@ -30,7 +30,9 @@ __copyright__ = '(C) 2024 by Operacao Ricardo Franco 2024'
 
 __revision__ = '$Format:%H$'
 
+import os
 from qgis.core import QgsProcessingProvider
+from qgis.PyQt.QtGui import QIcon
 from .geocodificacao_algorithm import GeocodificacaoAlgorithm
 
 
@@ -79,7 +81,7 @@ class GeocodificacaoProvider(QgsProcessingProvider):
         Should return a QIcon which is used for your provider inside
         the Processing toolbox.
         """
-        return QgsProcessingProvider.icon(self)
+        return QIcon(os.path.join(os.path.dirname(__file__), 'ricardofranco.jpg'))
 
     def longName(self):
         """
