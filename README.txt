@@ -1,26 +1,83 @@
-Plugin Builder Results
+ORF24 Geocodificação
 
-Your plugin Geocodificacao was created in:
-    C:/Users/etade/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins\geocodificacao
+Bem-vindo ao ORF24 Geocodificação, um plugin desenvolvido para QGIS que geocodifica endereços constantes em arquivo CSV e gera uma camada de pontos em shapefile.
 
-Your QGIS plugin directory is located at:
-    C:/Users/etade/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins
+---
 
-What's Next:
+## **Pré-requisitos de instalação**
 
-  * Copy the entire directory containing your new plugin to the QGIS plugin
-    directory
+Antes de instalar e utilizar o plugin, siga estas etapas para configurar seu ambiente corretamente.
 
-  * Run the tests (``make test``)
+### **1. Instale o módulo `geocoder`**
 
-  * Test the plugin by enabling it in the QGIS plugin manager
+No OSGeo4W Shell, execute o seguinte comando para instalar o módulo `geocoder`:
 
-  * Customize it by editing the implementation file: ``geocodificacao.py``
+pip install geocoder
 
-  * You can use the Makefile to compile your Ui and resource files when
-    you make changes. This requires GNU make (gmake)
 
-For more information, see the PyQGIS Developer Cookbook at:
-http://www.qgis.org/pyqgis-cookbook/index.html
+### **2. Resolva possíveis problemas de certificação**
 
-(C) 2011-2018 GeoApt LLC - geoapt.com
+Se ocorrerem erros relacionados a certificação durante o uso do plugin, siga os passos abaixo:
+
+1. No OSGeo4W Shell, abra o Python e execute os seguintes comandos para localizar o caminho do arquivo de certificação:
+
+    ```python
+    import certifi
+    print(certifi.where())
+    ```
+
+    Será retornado um caminho semelhante a este:
+
+    ```
+    C:\Users\seu_usuario\anaconda3\Lib\site-packages\certifi\cacert.pem
+    ```
+
+2. Configure o ambiente para usar este caminho como o arquivo de certificação:
+
+    ```
+    set REQUESTS_CA_BUNDLE=<caminho_do_certifi>
+    ```
+
+    Substitua `<caminho_do_certifi>` pelo caminho retornado na etapa anterior.
+
+---
+
+## **Orientações de uso**
+
+### **Formato do arquivo CSV**
+
+Para o correto funcionamento do plugin, o arquivo CSV de entrada deve:
+
+1. Usar **vírgulas** como separador de colunas.  
+2. Conter uma coluna de endereços no formato correto.
+
+---
+
+### **Formato da coluna de endereços**
+
+Durante a execução do plugin, você será solicitado a selecionar a **coluna de endereços**. Esta coluna deve conter os endereços formatados no seguinte padrão:
+
+"R. Mal. Bittencourt, 97, Santo Antônio, Manaus, Amazonas"
+
+**Exemplo:**
+Locais, endereços, obs
+Local 1, "R. Mal. Bittencourt, 97, Santo Antônio, Manaus, Amazonas", 4CGEO
+Local 2, "Rua Cleveland, 250, Santa Tereza, Porto Alegre, Rio Grande do Sul", 1CGEO
+
+---
+
+### **Instalação do Plugin no QGIS**
+
+Após configurar o ambiente, siga estas etapas para instalar o plugin no QGIS:
+
+1. Baixe ou clone o repositório do plugin em arquivo ZIP:
+
+2. Abra o QGIS.
+
+3. Vá até **Complementos > Gerenciar e Instalar Complementos**.
+
+4. Clique na aba **Instalar de um arquivo ZIP**.
+
+5. Selecione o arquivo ZIP do plugin ou a pasta onde os arquivos foram extraídos.
+
+6. Clique em **Instalar Complemento**.
