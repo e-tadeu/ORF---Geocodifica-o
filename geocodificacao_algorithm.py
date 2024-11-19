@@ -38,6 +38,7 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterFile,
                        QgsProcessingOutputVectorLayer,
                        QgsVectorLayer,
+                       QgsFeatureSink,
                        QgsFields,
                        QgsField,
                        QgsGeometry,
@@ -104,39 +105,51 @@ class GeocodificacaoAlgorithm(QgsProcessingAlgorithm):
         output_layer_pr.addAttributes(fields)
         output_layer.updateFields()
 
-        # Ler o arquivo CSV com pandas
-        feedback.pushInfo("Carregando o arquivo CSV...")
+        (sink, dest_id) = self.parameterAsSink(parameters, 
+                                self.OUTPUT_LAYER,
+                                context,
+                                output_layer.fields(),
+                                QgsWkbTypes.Point,
+                                output_layer.sourceCrs())
+
+        # Leitura do arquivo CSV com pandas
+        feedback.setProgressText('Carregando o arquivo CSV...')
         data = pd.read_csv(input_csv)
-        feedback.pushInfo(f"A variável data é do tipo {type(data)}.") #O data é do tipo dataframe
 
-        # Verificar se a coluna selecionada existe
-        #if address_field not in data.columns:
-        #    raise QgsProcessingException(f"A coluna '{address_field}' não foi encontrada no arquivo CSV.")
+        total = 100.0 / len(data) if len(data) > 0 else 0
 
-        # Processar cada endereço na coluna selecionada
+        # Processamento de cada endereço na coluna selecionada
+        feedback.setProgressText('Processando os endereços...')
         for index, row in data.iterrows():
             address = row[address_field]
-            feedback.pushInfo(f"O input address é {address}.")
+
             if not isinstance(address, str) or not address.strip():
-                feedback.pushInfo(f"Endereço vazio na linha {index + 1}, ignorado.")
+                feedback.pushInfo(f"\nEndereço vazio na linha {index + 1}, ignorado.")
                 continue
             
-            # Geocodificar o endereço
+            # Geocodificação do endereço
             location = geocoder.arcgis(address)
             if location and location.latlng:
                 lat, lng = location.latlng
-                feedback.pushInfo(f"\nO lat long do Endereço {address} é {lat}, {lng}.\n")
+                feedback.pushInfo(f"\nO endereço {address} possui as coordenadas {lat}, {lng}.")
                 # Criar uma nova feição de ponto
                 feature = QgsFeature()
                 feature.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(lng, lat)))
                 feature.setAttributes([address, lat, lng])
                 output_layer_pr.addFeature(feature)
             else:
-                feedback.pushInfo(f"Não foi possível geocodificar o endereço: {address}")
+                feedback.pushInfo(f"\nNão foi possível geocodificar o endereço: {address}")
+            
+            feedback.setProgress(int((index + 1) * total))
 
-        # Atualizar a camada
+        # Atualização da camada de saída
         output_layer.updateExtents()
-        QgsProject.instance().addMapLayer(output_layer)
+        #QgsProject.instance().addMapLayer(output_layer)
+
+        # Adição das feições na camada output
+        for feat in output_layer.getFeatures():
+            sink.addFeature(feat, QgsFeatureSink.FastInsert)
+        
         return {self.OUTPUT_LAYER: output_layer}
 
     def name(self):
@@ -162,16 +175,6 @@ class GeocodificacaoAlgorithm(QgsProcessingAlgorithm):
         should be localised.
         """
         return self.tr(self.groupId())
-
-    def groupId(self):
-        """
-        Returns the unique ID of the group this algorithm belongs to. This
-        string should be fixed for the algorithm, and must not be localised.
-        The group id should be unique within each provider. Group id should
-        contain lowercase alphanumeric characters only and no spaces or other
-        formatting characters.
-        """
-        return ''
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
