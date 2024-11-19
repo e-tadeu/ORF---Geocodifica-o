@@ -1,4 +1,4 @@
-```markdown
+
 # ORF24 Geocodificação
 
 Bem-vindo ao **ORF24 Geocodificação**, um plugin desenvolvido para QGIS que geocodifica endereços constantes em arquivo CSV e gera uma camada de pontos em shapefile.
