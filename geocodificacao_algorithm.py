@@ -47,7 +47,7 @@ from qgis.core import (QgsProcessing,
                        QgsFeature,
                        QgsWkbTypes,
                        QgsCoordinateReferenceSystem)
-import geocoder
+# import geocoder
 import pandas as pd
 from qgis.PyQt.QtCore import QVariant, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
