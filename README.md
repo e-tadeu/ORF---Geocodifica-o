@@ -11,7 +11,7 @@ Antes de instalar e utilizar o plugin, siga estas etapas para configurar seu amb
 
 ### **1. Instale o módulo `geocoder`**
 
-No OSGeo4W Shell (Garantir que a versão deste OSGeo4w Shell seja semelhante a versão do QGIS a ser utilizado), execute o seguinte comando para instalar o módulo `geocoder`:
+No OSGeo4W Shell (Garantir que a versão deste OSGeo4w Shell seja semelhante a versão do QGIS a ser utilizada), execute o seguinte comando para instalar o módulo `geocoder`:
 
 ```bash
 pip install geocoder
