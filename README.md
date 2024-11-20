@@ -11,7 +11,7 @@ Antes de instalar e utilizar o plugin, siga estas etapas para configurar seu amb
 
 ### **1. Instale o módulo `geocoder`**
 
-No OSGeo4W Shell (Garantir que a versão deste OSGeo4w Shell seja semelhante a versão do QGIS a ser utilizada), execute o seguinte comando para instalar o módulo `geocoder`:
+No OSGeo4W Shell (Garanta que a versão deste OSGeo4w Shell seja semelhante a versão do QGIS a ser utilizada), execute o seguinte comando para instalar o módulo `geocoder`:
 
 ```bash
 pip install geocoder
@@ -19,9 +19,9 @@ pip install geocoder
 
 ### **2. Resolva possíveis problemas de certificação**
 
-Se ocorrerem erros relacionados à certificação durante o uso do plugin, siga os passos abaixo:
+Se ocorrerem erros relacionados à certificação durante essa etapa, siga os passos abaixo:
 
-1. No OSGeo4W Shell, abra o Python e execute os seguintes comandos para localizar o caminho do arquivo de certificação:
+1. Abra o Python e execute os seguintes comandos para localizar o caminho do arquivo de certificação:
 
     ```python
     import certifi
@@ -44,6 +44,23 @@ Se ocorrerem erros relacionados à certificação durante o uso do plugin, siga 
 
 ---
 
+## **Instalação do Plugin no QGIS**
+
+Após configurar o ambiente, siga estas etapas para instalar o plugin no QGIS:
+
+1. Baixe ou clone o repositório do plugin em arquivo ZIP.
+2. Abra o QGIS.
+3. Vá até **Complementos > Gerenciar e Instalar Complementos**.
+4. Clique na aba **Instalar de um arquivo ZIP**.
+5. Selecione o arquivo ZIP do plugin ou a pasta onde os arquivos foram extraídos.
+6. Clique em **Instalar Complemento**.
+
+---
+
+Com essas etapas concluídas, o plugin estará pronto para uso!
+
+---
+
 ## **Orientações de uso**
 
 ### **Formato do arquivo CSV**
@@ -51,7 +68,7 @@ Se ocorrerem erros relacionados à certificação durante o uso do plugin, siga 
 Para o correto funcionamento do plugin, o arquivo CSV de entrada deve:
 
 1. Usar **vírgulas** como separador de colunas.  
-2. Conter uma coluna de endereços no formato correto.
+2. Conter uma coluna de endereços no formato padronizado, conforme orientação abaixo.
 
 ### **Formato da coluna de endereços**
 
@@ -70,19 +87,3 @@ Local 2, "Rua Cleveland, 250, Santa Tereza, Porto Alegre, Rio Grande do Sul", 1C
 ```
 
 ---
-
-## **Instalação do Plugin no QGIS**
-
-Após configurar o ambiente, siga estas etapas para instalar o plugin no QGIS:
-
-1. Baixe ou clone o repositório do plugin em arquivo ZIP.
-2. Abra o QGIS.
-3. Vá até **Complementos > Gerenciar e Instalar Complementos**.
-4. Clique na aba **Instalar de um arquivo ZIP**.
-5. Selecione o arquivo ZIP do plugin ou a pasta onde os arquivos foram extraídos.
-6. Clique em **Instalar Complemento**.
-
----
-
-Com essas etapas concluídas, o plugin estará pronto para uso!
-```
